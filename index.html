@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cash App — In-App Appeal Prototype</title>
+<style>
+:root{
+  --bg:#000; --panel:#0d0d0d; --panel2:#141414; --text:#fff;
+  --muted:#aaa; --line:#3b3b3b; --green:#00d64f; --soft:#1b1b1b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:#111;color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.stage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.phone{
+  width:min(100%,390px);height:800px;background:var(--bg);border:1px solid #282828;
+  border-radius:22px;overflow:hidden;position:relative;box-shadow:0 24px 70px #0008;
+}
+.screen{
+  display:none;height:100%;overflow-y:auto;padding:24px 24px 32px;background:#000;
+  scrollbar-width:none;
+}
+.screen::-webkit-scrollbar{display:none}.screen.active{display:block}
+.back{border:0;background:none;color:#fff;font-size:32px;line-height:1;padding:0 0 24px;cursor:pointer}
+h1{font-size:28px;line-height:1.1;margin:2px 0 14px;font-weight:750;letter-spacing:-.5px}
+h2{font-size:20px;margin:0 0 8px} p{font-size:15px;line-height:1.5;margin:0 0 22px}
+.muted{color:#b5b5b5}.small{font-size:13px}.label{font-size:14px;font-weight:600;margin:24px 0 8px}
+.card{border:1px solid var(--line);border-radius:13px;background:linear-gradient(145deg,#101010,#080808);overflow:hidden}
+.menu{margin-top:14px}.menu-row{
+  display:flex;gap:13px;align-items:center;padding:13px 12px;border-bottom:1px solid #292929;cursor:pointer
+}
+.menu-row:last-child{border-bottom:0}.icon{
+  width:36px;height:36px;background:#fff;color:#000;border-radius:8px;display:grid;place-items:center;
+  font-size:18px;flex:0 0 auto
+}
+.menu-copy{flex:1}.menu-copy b{display:block;font-size:14px}.menu-copy span{font-size:12px;color:#ddd}
+.chev{font-size:26px}
+input{
+  width:100%;background:#050505;border:1px solid #555;border-radius:10px;padding:14px 15px;
+  color:#fff;font-size:15px;outline:none
+}
+input:focus{border-color:#aaa}.info{
+  margin-top:18px;padding:16px;border:1px solid #444;border-radius:12px;display:flex;gap:14px;
+  font-size:13px;line-height:1.5;background:#0b0b0b
+}
+.info-dot{width:21px;height:21px;border:1.5px solid #fff;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;font-weight:700}
+.bottom{position:absolute;left:24px;right:24px;bottom:28px}
+.btn{
+  width:100%;border:0;border-radius:12px;padding:15px 18px;font-weight:750;font-size:15px;cursor:pointer;
+  background:#fff;color:#000
+}
+.btn:disabled{background:#333;color:#8d8d8d;cursor:not-allowed}
+.secure{text-align:center;color:#aaa;font-size:12px;margin-top:14px}
+.check{
+  width:58px;height:58px;border:4px solid var(--green);color:var(--green);border-radius:50%;
+  display:grid;place-items:center;font-size:34px;margin:30px auto 24px
+}
+.center{text-align:center}.ticket{padding:18px;margin-top:28px}.ticket small{color:#ddd}.ticket strong{display:block;font-size:22px;margin-top:10px}
+.details{margin-top:16px}.detail-row{display:flex;gap:13px;padding:14px;border-bottom:1px solid #292929;font-size:13px;line-height:1.45}
+.detail-row:last-child{border:0}.detail-icon{font-size:20px}
+.status-head{margin:22px 0 10px;font-size:14px}.timeline{padding:15px 14px}
+.step{display:grid;grid-template-columns:24px 1fr;gap:12px;position:relative;padding-bottom:22px}
+.step:last-child{padding-bottom:4px}.step:before{
+  content:"";position:absolute;left:9px;top:20px;bottom:0;width:2px;background:#606060
+}
+.step:last-child:before{display:none}.dot{
+  width:20px;height:20px;border:2px solid #9b9b9b;border-radius:50%;background:#0b0b0b;z-index:1
+}
+.step.done .dot,.step.current .dot{border-color:var(--green)}
+.step.done .dot:after{content:"✓";font-size:12px;color:var(--green);display:grid;place-items:center;font-weight:bold}
+.step.done:before{background:var(--green)}
+.step b{font-size:14px}.step p{font-size:12px;color:#ddd;margin:4px 0 0;line-height:1.4}
+.badge{color:var(--green);font-size:12px;font-weight:700;margin-top:4px}
+.notice{padding:14px 16px;border:1px solid #444;border-radius:12px;margin:16px 0;font-size:13px;line-height:1.5}
+.demo{position:fixed;right:18px;bottom:18px;color:#aaa;font-size:11px;background:#171717;padding:8px 10px;border-radius:8px}
+@media(max-width:520px){.stage{padding:0}.phone{width:100%;height:100vh;border-radius:0;border:0}.demo{display:none}}
+</style>
+</head>
+<body>
+<div class="stage"><main class="phone">
+
+<section class="screen active" id="closed">
+  <button class="back" aria-label="Back">‹</button>
+  <h1>Your Account Is Closed</h1>
+  <p>Your Cash App account was closed because of activity that goes against our Terms of Service. If you believe this is an error, you may be able to appeal this decision.</p>
+  <p>Please note that the review process may take <b>10–30 days</b>. We’ll let you know as soon as the review is complete.</p>
+  <p>While your account is under review, access to most account features will remain restricted.</p>
+  <div class="menu card">
+    <div class="menu-row" id="appealMenu" onclick="startAppeal()">
+      <div class="icon">▤</div><div class="menu-copy"><b>1 &nbsp; File an Appeal</b><span>Submit an appeal for review</span></div><div class="chev">›</div>
+    </div>
+    <div class="menu-row" id="statusMenu" onclick="openStatus()">
+      <div class="icon">⌕</div><div class="menu-copy"><b>2 &nbsp; Check Ongoing Appeal</b><span id="statusSub">View your active appeal status</span></div><div class="chev">›</div>
+    </div>
+    <div class="menu-row"><div class="icon">◉</div><div class="menu-copy"><b>3 &nbsp; Contact Support</b><span>Get help with your account</span></div><div class="chev">›</div></div>
+  </div>
+  <p class="small muted" style="margin-top:18px">Only one appeal can be active for this account at a time.</p>
+</section>
+
+<section class="screen" id="file">
+  <button class="back" onclick="show('closed')">‹</button>
+  <h1>File an Appeal</h1>
+  <p>To file an appeal, provide an updated email address where we can contact you about the review.</p>
+  <div class="label">Updated Email Address</div>
+  <input id="email" type="email" placeholder="Enter your email address" oninput="validateEmail()">
+  <div class="info"><div class="info-dot">i</div><div>Make sure this is an email address you check regularly. This is where we’ll send updates about your appeal.</div></div>
+  <div class="bottom">
+    <button class="btn" id="submitBtn" disabled onclick="submitAppeal()">Submit Appeal</button>
+    <div class="secure">▣ &nbsp; Your information is secure and will only be used to review your appeal.</div>
+  </div>
+</section>
+
+<section class="screen" id="submitted">
+  <button class="back" onclick="show('closed')">‹</button>
+  <div class="check">✓</div>
+  <h1 class="center">Appeal Submitted</h1>
+  <p class="center">Thank you. We’ve received your appeal.</p>
+  <div class="card ticket"><small>Appeal Number</small><strong id="ticketNo">AP-7X9M-2B4K</strong><br><small>Date of Appeal</small><div id="submittedDate" style="margin-top:7px">—</div></div>
+  <div class="card details">
+    <div class="detail-row"><div class="detail-icon">ⓘ</div><div>We will review your appeal and let you know of any updates.</div></div>
+    <div class="detail-row"><div class="detail-icon">▣</div><div>Please allow approximately <b>10–30 days</b> for investigation and review.</div></div>
+    <div class="detail-row"><div class="detail-icon">⌕</div><div>You can check your ongoing appeal directly in the app. No appeal number is required.</div></div>
+  </div>
+  <div class="bottom"><button class="btn" onclick="openStatus()">View Appeal Status</button></div>
+</section>
+
+<section class="screen" id="status">
+  <button class="back" onclick="show('closed')">‹</button>
+  <h1>Ongoing Appeal</h1>
+  <p>Track the appeal associated with this Cash App account.</p>
+  <div class="card ticket">
+    <small>Appeal Number</small><strong id="statusTicket">AP-7X9M-2B4K</strong>
+    <div style="margin-top:12px"><small>Estimated review time</small><div style="margin-top:5px">10–30 days</div></div>
+  </div>
+  <div class="status-head">Appeal Status</div>
+  <div class="card timeline">
+    <div class="step done"><div class="dot"></div><div><b>Appeal Submitted</b><p id="tlSubmitted">Submission date will appear here.</p></div></div>
+    <div class="step current"><div class="dot"></div><div><b>Appeal Review Started</b><div class="badge">In Review</div><p id="reviewStart">Review start date will appear when review begins.</p></div></div>
+    <div class="step"><div class="dot"></div><div><b>Appeal Investigation</b><p>Pending. We’ll update this stage while the appeal is being investigated.</p></div></div>
+    <div class="step"><div class="dot"></div><div><b>Appeal Review End</b><p>Pending. The final decision and completion date will appear here.</p></div></div>
+  </div>
+  <div class="notice">You do not need to submit another appeal while this review is active. Only one appeal can be open for this account at a time.</div>
+</section>
+
+<section class="screen" id="none">
+  <button class="back" onclick="show('closed')">‹</button>
+  <div style="height:170px"></div>
+  <div class="center" style="font-size:40px">ⓘ</div><h2 class="center">No Ongoing Appeal</h2>
+  <p class="center muted">There is currently no active appeal associated with this account.</p>
+  <button class="btn" onclick="show('file')">File an Appeal</button>
+</section>
+
+</main></div>
+<div class="demo">Interactive prototype • data is simulated</div>
+
+<script>
+let appeal = JSON.parse(localStorage.getItem("cashAppealPrototype") || "null");
+
+function show(id){
+  document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.getElementById(id).scrollTop=0;
+  sync();
+}
+function validateEmail(){
+  const e=document.getElementById("email").value.trim();
+  document.getElementById("submitBtn").disabled=!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+}
+function startAppeal(){
+  if(appeal){ openStatus(); return; }
+  show("file");
+}
+function makeTicket(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let part=n=>Array.from({length:n},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
+  return "AP-"+part(4)+"-"+part(4);
+}
+function fmt(d){
+  return new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}).format(d);
+}
+function submitAppeal(){
+  const now=new Date();
+  appeal={ticket:makeTicket(),submitted:now.toISOString(),email:document.getElementById("email").value.trim()};
+  localStorage.setItem("cashAppealPrototype",JSON.stringify(appeal));
+  sync(); show("submitted");
+}
+function openStatus(){ show(appeal ? "status" : "none"); }
+function sync(){
+  const menu=document.getElementById("appealMenu");
+  document.getElementById("statusSub").textContent=appeal?"Track your active appeal":"No active appeal on this account";
+  if(appeal){
+    const d=new Date(appeal.submitted);
+    document.getElementById("ticketNo").textContent=appeal.ticket;
+    document.getElementById("statusTicket").textContent=appeal.ticket;
+    document.getElementById("submittedDate").textContent=fmt(d);
+    document.getElementById("tlSubmitted").textContent=fmt(d)+" • Your appeal has been received.";
+    document.getElementById("reviewStart").textContent="Review begins after initial intake. The start date will be shown here once available.";
+    menu.querySelector("b").innerHTML="1 &nbsp; Appeal Already Submitted";
+    menu.querySelector("span").textContent="Only one active appeal is allowed";
+  } else {
+    menu.querySelector("b").innerHTML="1 &nbsp; File an Appeal";
+    menu.querySelector("span").textContent="Submit an appeal for review";
+  }
+}
+sync();
+</script>
+</body>
+</html>
