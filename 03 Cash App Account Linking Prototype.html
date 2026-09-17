@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cash App – Account Linking Prototype</title>
+<style>
+  :root{
+    --cash-green:#00D64F;
+    --cash-green-dark:#00B943;
+    --ink:#101010;
+    --muted:#6B6B6B;
+    --line:#E8E8E8;
+    --soft:#F7F7F7;
+    --soft-green:#DDFBE7;
+    --danger:#D93025;
+    --white:#FFFFFF;
+    --radius:16px;
+    --shadow:0 8px 30px rgba(0,0,0,.10);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:#ECECEC;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,Arial,Helvetica,sans-serif;
+    color:var(--ink);
+  }
+
+  .stage{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .phone{
+    width:min(390px,100vw);
+    height:min(844px,calc(100vh - 32px));
+    background:var(--white);
+    border:1px solid #D9D9D9;
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    position:relative;
+  }
+
+  .screen{
+    position:absolute;
+    inset:0;
+    background:#fff;
+    display:none;
+    overflow-y:auto;
+    scrollbar-width:none;
+  }
+  .screen::-webkit-scrollbar{display:none}
+  .screen.active{display:block}
+
+  .topbar{
+    height:62px;
+    display:grid;
+    grid-template-columns:44px 1fr 44px;
+    align-items:center;
+    padding:0 10px;
+    background:#fff;
+    position:sticky;
+    top:0;
+    z-index:10;
+    border-bottom:1px solid rgba(232,232,232,.45);
+  }
+  .topbar h1{
+    margin:0;
+    font-size:15px;
+    line-height:1.2;
+    text-align:center;
+    font-weight:750;
+    letter-spacing:-.01em;
+  }
+
+  .icon-btn{
+    width:38px;height:38px;border:0;background:transparent;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:#111;
+  }
+  .icon-btn:hover{background:#F5F5F5}
+
+  .content{padding:8px 16px 30px}
+  .content.loose{padding-top:18px}
+
+  .intro{
+    font-size:15px;
+    line-height:1.55;
+    color:#222;
+    margin:8px 4px 22px;
+  }
+
+  .settings-list{border-top:1px solid var(--line); margin:0 -16px}
+  .settings-row{
+    min-height:62px;
+    display:grid;
+    grid-template-columns:32px 1fr 24px;
+    align-items:center;
+    gap:6px;
+    padding:0 18px 0 22px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+    background:#fff;
+  }
+  .settings-row:hover{background:#FAFAFA}
+  .settings-row.featured{
+    margin:0 14px;
+    border:1.5px solid #FF5F61;
+    border-radius:7px;
+    min-height:64px;
+  }
+  .settings-row.featured + .settings-row{margin-top:6px}
+  .row-label{font-size:14px;font-weight:600;line-height:1.25}
+  .chev{color:#777;display:flex;justify-content:flex-end}
+  .mini-icon{width:19px;height:19px;display:flex;align-items:center;justify-content:center}
+
+  .cards{display:grid;gap:14px}
+  .choice-card,
+  .status-card,
+  .info-card,
+  .form-card{
+    border:1px solid #E2E2E2;
+    border-radius:14px;
+    background:#fff;
+  }
+
+  .choice-card{
+    min-height:116px;
+    display:grid;
+    grid-template-columns:42px 1fr 18px;
+    gap:8px;
+    align-items:center;
+    padding:16px;
+    cursor:pointer;
+  }
+  .choice-card:hover{background:#FAFAFA}
+  .choice-title{font-size:14px;font-weight:750;margin-bottom:7px}
+  .choice-copy{font-size:12px;line-height:1.45;color:#444}
+  .big-mini{
+    width:34px;height:34px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    color:#222;
+  }
+
+  h2{
+    font-size:24px;
+    line-height:1.15;
+    margin:16px 2px 10px;
+    letter-spacing:-.025em;
+  }
+  .sub{
+    color:#333;
+    font-size:14px;
+    line-height:1.55;
+    margin:0 2px 22px;
+  }
+
+  .verification-card{
+    border:1px solid #E3E3E3;
+    border-radius:16px;
+    padding:20px 18px;
+    margin-top:18px;
+  }
+  .verification-badge{
+    width:70px;height:70px;border:3px solid var(--cash-green);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    margin:12px auto 18px;color:var(--cash-green);
+  }
+  .verification-card h3{text-align:center;font-size:20px;margin:0 0 10px}
+  .verification-card p{text-align:center;font-size:13px;line-height:1.5;color:#4E4E4E;margin:0}
+
+  .field{margin-bottom:18px}
+  label{display:block;font-size:13px;font-weight:750;margin:0 0 8px 2px}
+  input, select{
+    width:100%;height:54px;border:1px solid #DCDCDC;border-radius:13px;
+    background:#fff;padding:0 14px;font-size:14px;color:#111;
+    outline:none;transition:.15s;
+  }
+  input:focus,select:focus{border-color:#111;box-shadow:0 0 0 2px rgba(0,0,0,.04)}
+  input::placeholder{color:#A0A0A0}
+
+  .input-wrap{position:relative}
+  .input-wrap input{padding-right:46px}
+  .lock{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    color:#555;pointer-events:none;
+  }
+
+  .upload{
+    border:1.5px dashed #CFCFCF;
+    border-radius:14px;
+    padding:20px 15px;
+    text-align:center;
+    cursor:pointer;
+    background:#FCFCFC;
+  }
+  .upload.drag{border-color:#111;background:#F7F7F7}
+  .upload-title{font-size:14px;font-weight:750;margin:9px 0 5px}
+  .upload-copy{font-size:12px;color:#666;line-height:1.5}
+  .file-name{margin-top:10px;font-size:12px;font-weight:700;color:#222;word-break:break-all}
+
+  .btn{
+    width:100%;height:54px;border:0;border-radius:13px;
+    font-size:14px;font-weight:800;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .btn.primary{background:#000;color:#fff}
+  .btn.primary:hover{background:#171717}
+  .btn.secondary{background:#F3F3F3;color:#111}
+  .btn.green{background:var(--cash-green);color:#08140B}
+  .btn + .btn{margin-top:10px}
+
+  .secure-note{
+    display:flex;gap:9px;align-items:flex-start;
+    font-size:11px;line-height:1.45;color:#666;
+    margin:16px 3px 0;
+  }
+
+  .success-icon{
+    width:70px;height:70px;border:3px solid var(--cash-green);
+    color:var(--cash-green);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin:32px auto 16px;
+  }
+  .center{text-align:center}
+  .center h2{margin-top:8px}
+  .center .sub{max-width:290px;margin-left:auto;margin-right:auto}
+
+  .status-card{padding:18px;margin-top:14px}
+  .status-line{display:flex;justify-content:space-between;gap:12px}
+  .status-label{font-size:12px;color:#555;margin-bottom:5px}
+  .status-value{font-size:16px;font-weight:800}
+  .pill{
+    display:inline-flex;align-items:center;height:27px;padding:0 10px;
+    border-radius:999px;font-size:12px;font-weight:800;
+    color:#118932;background:var(--soft-green);white-space:nowrap;
+  }
+
+  .info-card{padding:17px;margin-top:14px}
+  .info-row{display:grid;grid-template-columns:25px 1fr;gap:10px;align-items:flex-start}
+  .info-row + .info-row{margin-top:16px}
+  .info-row strong{font-size:12px;display:block;margin-bottom:3px}
+  .info-row span{font-size:12px;color:#444;line-height:1.5}
+
+  .section-title{font-size:13px;font-weight:800;margin:20px 2px 9px}
+  .progress-card{border:1px solid #E2E2E2;border-radius:14px;padding:17px 14px 14px}
+  .step{
+    display:grid;
+    grid-template-columns:24px 1fr;
+    gap:9px;
+    position:relative;
+    padding-bottom:20px;
+  }
+  .step:last-child{padding-bottom:0}
+  .step:not(:last-child)::after{
+    content:"";
+    position:absolute;left:7px;top:18px;width:2px;height:calc(100% - 2px);
+    background:#CFCFCF;
+  }
+  .step.done:not(:last-child)::after,
+  .step.current:not(:last-child)::after{background:var(--cash-green)}
+  .dot{
+    width:15px;height:15px;border:2px solid #B7B7B7;border-radius:50%;
+    background:#fff;position:relative;z-index:2;margin-top:1px;
+  }
+  .step.done .dot{border-color:var(--cash-green);background:var(--cash-green)}
+  .step.current .dot{border-color:var(--cash-green)}
+  .step-title{font-size:13px;font-weight:800;margin-bottom:4px}
+  .step-meta{font-size:11px;color:#555;margin-bottom:4px}
+  .step-copy{font-size:11px;line-height:1.45;color:#444}
+
+  .notice{
+    border-radius:14px;
+    padding:14px;
+    font-size:12px;
+    line-height:1.5;
+    margin:14px 0;
+    display:flex;gap:10px;align-items:flex-start;
+  }
+  .notice.ok{background:#F2FFF6;border:1px solid #C8F5D6}
+  .notice.bad{background:#FFF5F4;border:1px solid #F3D0CD}
+
+  .footer-space{height:20px}
+
+  .demo-bar{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    max-width:500px;
+  }
+  .demo-pill{
+    border:1px solid #D1D1D1;
+    border-radius:999px;
+    background:#fff;
+    padding:8px 12px;
+    font:600 12px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text",Arial,sans-serif;
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+  }
+
+  @media (max-width:520px){
+    .stage{padding:0;background:#fff;align-items:stretch}
+    .phone{width:100vw;height:100vh;border:0;border-radius:0;box-shadow:none}
+    .demo-bar{
+      position:absolute;
+      bottom:8px;right:8px;
+      z-index:50;
+      opacity:.35;
+    }
+    .demo-bar:hover{opacity:1}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone">
+
+    <!-- Account Settings -->
+    <section class="screen active" id="settings">
+      <div class="topbar">
+        <button class="icon-btn" aria-label="Back" onclick="noop()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <h1>Account Settings</h1>
+        <button class="icon-btn" aria-label="Close" onclick="noop()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="content">
+        <div class="settings-list">
+          <div class="settings-row"><div class="mini-icon">👥</div><div class="row-label">Invite a Friend</div><div class="chev">›</div></div>
+          <div class="settings-row"><div class="mini-icon">◉</div><div class="row-label">Get Personal Help</div><div class="chev">›</div></div>
+          <div class="settings-row"><div class="mini-icon">▣</div><div class="row-label">Get a Debit Card</div><div class="chev">›</div></div>
+          <div class="settings-row"><div class="mini-icon">♟</div><div class="row-label">Cash kid &amp; teen<br>banking</div><div class="chev">›</div></div>
+          <div class="settings-row"><div class="mini-icon">●</div><div class="row-label">Update Your Personal<br>Information</div><div class="chev">›</div></div>
+          <div class="settings-row featured" onclick="openLinking()">
+            <div class="mini-icon">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.07.07l2-2A5 5 0 0 0 12 4l-1.15 1.15M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="row-label">Link Your Account to<br>a Previous Account</div>
+            <div class="chev">›</div>
+          </div>
+          <div class="settings-row"><div class="mini-icon">♟</div><div class="row-label">Enable Push<br>Notifications</div><div class="chev">›</div></div>
+          <div class="settings-row"><div class="mini-icon">⊠</div><div class="row-label">Close Your Cash App<br>Account</div><div class="chev">›</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Landing -->
+    <section class="screen" id="link-home">
+      <div class="topbar">
+        <button class="icon-btn" onclick="show('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2"/></svg></button>
+        <h1>Link Your Account to<br>a Previous Account</h1><div></div>
+      </div>
+      <div class="content loose">
+        <p class="intro">If you had a previous Cash App account, you can request to have it linked to your current account.</p>
+
+        <div id="no-request-state">
+          <div class="choice-card" onclick="startVerification()">
+            <div class="big-mini">
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><path d="M6 3h9l3 3v15H6z" stroke="currentColor" stroke-width="1.8"/><path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div><div class="choice-title">Request to Link My Account</div><div class="choice-copy">Submit a request to have your previous Cash App account linked to your current account.</div></div>
+            <div>›</div>
+          </div>
+        </div>
+
+        <div id="existing-request-state" style="display:none">
+          <div class="choice-card" onclick="show('status')">
+            <div class="big-mini">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <div><div class="choice-title">View Account Linking Request</div><div class="choice-copy">You already have one active request. View the latest status and progress here.</div></div>
+            <div>›</div>
+          </div>
+          <div class="notice ok">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#00B943" stroke-width="2"/><path d="M8.5 12l2.2 2.2 4.8-5" stroke="#00B943" stroke-width="2" stroke-linecap="round"/></svg>
+            <div>Only one account linking request can be active at a time.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Verification Check -->
+    <section class="screen" id="verification">
+      <div class="topbar">
+        <button class="icon-btn" onclick="show('link-home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2"/></svg></button>
+        <h1>Verify Your Account</h1><div></div>
+      </div>
+      <div class="content loose">
+        <h2>Account verification</h2>
+        <p class="sub">Before you can link a previous account, we need to confirm that your current Cash App account is fully verified.</p>
+        <div class="verification-card" id="verification-card">
+          <div class="verification-badge" id="verification-badge">
+            <svg id="verification-icon" width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 id="verification-title">Fully verified</h3>
+          <p id="verification-copy">Your identity has been verified. You can continue with your account linking request.</p>
+        </div>
+        <div style="margin-top:22px">
+          <button class="btn primary" id="verification-continue" onclick="proceedFromVerification()">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Request Form -->
+    <section class="screen" id="request-form">
+      <div class="topbar">
+        <button class="icon-btn" onclick="show('verification')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2"/></svg></button>
+        <h1>Request to Link<br>My Account</h1><div></div>
+      </div>
+      <div class="content loose">
+        <p class="intro">Please provide the following information to help us find and link your previous account.</p>
+
+        <div class="field">
+          <label>Full Name</label>
+          <input id="fullName" type="text" placeholder="Enter your full name" value="Jordan Lee"/>
+        </div>
+
+        <div class="field">
+          <label>SSN</label>
+          <div class="input-wrap">
+            <input id="ssn" type="password" inputmode="numeric" placeholder="Enter your SSN" value="123456789"/>
+            <span class="lock">🔒</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Address</label>
+          <input id="address" type="text" placeholder="Enter your address" value="88 Market Street, San Francisco, CA"/>
+        </div>
+
+        <div class="field">
+          <label>Cash Tag</label>
+          <input id="cashtag" type="text" placeholder="Enter your Cash Tag" value="$JordanPrevious"/>
+        </div>
+
+        <div class="field">
+          <label>Valid ID</label>
+          <select id="idType">
+            <option>Driver's License</option>
+            <option>State ID</option>
+            <option>Passport</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Submit valid ID</label>
+          <div class="upload" id="uploadBox" onclick="document.getElementById('fileInput').click()" ondragover="dragOn(event)" ondragleave="dragOff(event)" ondrop="dropFile(event)">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 16V5m0 0L8 9m4-4 4 4M5 15v4h14v-4" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="upload-title">Attach your ID</div>
+            <div class="upload-copy">Tap to choose a file or drag and drop it here.<br>JPG, PNG, or PDF up to 10 MB.</div>
+            <div class="file-name" id="fileName"></div>
+          </div>
+          <input id="fileInput" type="file" accept=".jpg,.jpeg,.png,.pdf" hidden onchange="handleFile(this.files[0])" />
+        </div>
+
+        <button class="btn primary" onclick="submitRequest()">Submit Request</button>
+        <div class="secure-note">
+          <span>🔒</span>
+          <span>Your information is secure and will only be used to review your account linking request.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Submission Confirmation -->
+    <section class="screen" id="confirmation">
+      <div class="topbar">
+        <button class="icon-btn" onclick="show('link-home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2"/></svg></button>
+        <h1></h1><div></div>
+      </div>
+      <div class="content center">
+        <div class="success-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2>Request Submitted</h2>
+        <p class="sub">We've received your request to link your previous Cash App account.</p>
+
+        <div class="status-card" style="text-align:left">
+          <div class="status-label">Date Submitted</div>
+          <div class="status-value" id="submitted-date">Sep 9, 2026 • 9:11 PM</div>
+          <div style="margin-top:14px"><span class="pill">Submitted</span></div>
+        </div>
+
+        <div class="info-card" style="text-align:left">
+          <div class="info-row">
+            <div>ⓘ</div>
+            <div><strong>We'll review your request</strong><span>We'll let you know if we need additional information or when the request is completed.</span></div>
+          </div>
+          <div class="info-row">
+            <div>▣</div>
+            <div><strong>Review timing</strong><span>Please allow 3 to 5 business days for your request to be processed.</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top:26px">
+          <button class="btn primary" onclick="show('status')">View Request Status</button>
+          <button class="btn secondary" onclick="show('settings')">Done</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Status -->
+    <section class="screen" id="status">
+      <div class="topbar">
+        <button class="icon-btn" onclick="show('link-home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2"/></svg></button>
+        <h1>Request Status</h1><div></div>
+      </div>
+      <div class="content loose">
+        <div class="status-card">
+          <div class="status-line">
+            <div>
+              <div class="status-label">Account Linking Request</div>
+              <div class="status-value">Previous Account</div>
+            </div>
+            <span class="pill">Under Investigation</span>
+          </div>
+          <div style="margin-top:15px">
+            <div class="status-label">Date Submitted</div>
+            <div style="font-size:13px;font-weight:700" id="status-date">Sep 9, 2026 • 9:11 PM</div>
+          </div>
+        </div>
+
+        <div class="section-title">Request Progress</div>
+        <div class="progress-card">
+          <div class="step done">
+            <div class="dot"></div>
+            <div>
+              <div class="step-title">Request Submitted</div>
+              <div class="step-meta" id="progress-submitted-date">Sep 9, 2026 • 9:11 PM</div>
+              <div class="step-copy">Your request has been received.</div>
+            </div>
+          </div>
+          <div class="step done">
+            <div class="dot"></div>
+            <div>
+              <div class="step-title">Request Review Started</div>
+              <div class="step-meta">Sep 10, 2026 • 9:15 AM</div>
+              <div class="step-copy">We've started reviewing your request.</div>
+            </div>
+          </div>
+          <div class="step current">
+            <div class="dot"></div>
+            <div>
+              <div class="step-title">Request Under Investigation</div>
+              <div class="step-meta">In Progress</div>
+              <div class="step-copy">We are validating your identity and previous account details.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="dot"></div>
+            <div>
+              <div class="step-title">Request Review End</div>
+              <div class="step-meta">Pending</div>
+              <div class="step-copy">We'll notify you when a decision has been made.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="notice ok">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#00B943" stroke-width="2"/><path d="M8.5 12l2.2 2.2 4.8-5" stroke="#00B943" stroke-width="2" stroke-linecap="round"/></svg>
+          <div>You can only have one active account linking request. You do not need to enter a request number to check status.</div>
+        </div>
+
+        <div class="center" style="font-size:12px;margin-top:18px">Need help? <u>Contact Support</u></div>
+        <div class="footer-space"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="demo-bar" aria-label="Prototype controls">
+  <button class="demo-pill" onclick="toggleVerification()">Demo: toggle verified</button>
+  <button class="demo-pill" onclick="resetPrototype()">Reset request</button>
+</div>
+
+<script>
+let fullyVerified = true;
+let hasRequest = false;
+let uploadedFile = null;
+
+function noop(){}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).scrollTop = 0;
+}
+
+function openLinking(){
+  document.getElementById('no-request-state').style.display = hasRequest ? 'none' : 'block';
+  document.getElementById('existing-request-state').style.display = hasRequest ? 'block' : 'none';
+  show('link-home');
+}
+
+function startVerification(){
+  renderVerification();
+  show('verification');
+}
+
+function renderVerification(){
+  const badge = document.getElementById('verification-badge');
+  const title = document.getElementById('verification-title');
+  const copy = document.getElementById('verification-copy');
+  const btn = document.getElementById('verification-continue');
+
+  if(fullyVerified){
+    badge.style.borderColor = 'var(--cash-green)';
+    badge.style.color = 'var(--cash-green)';
+    badge.innerHTML = '<svg width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    title.textContent = 'Fully verified';
+    copy.textContent = 'Your identity has been verified. You can continue with your account linking request.';
+    btn.textContent = 'Continue';
+  } else {
+    badge.style.borderColor = '#D93025';
+    badge.style.color = '#D93025';
+    badge.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M12 7v6M12 17h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>';
+    title.textContent = 'Verification required';
+    copy.textContent = 'Your current account must be fully verified before you can request account linking.';
+    btn.textContent = 'Review Verification';
+  }
+}
+
+function proceedFromVerification(){
+  if(fullyVerified){
+    show('request-form');
+  }else{
+    alert('Prototype: this would open the Cash App identity verification flow.');
+  }
+}
+
+function toggleVerification(){
+  fullyVerified = !fullyVerified;
+  renderVerification();
+  show('verification');
+}
+
+function handleFile(file){
+  if(!file) return;
+  uploadedFile = file;
+  document.getElementById('fileName').textContent = 'Attached: ' + file.name;
+}
+
+function dragOn(e){e.preventDefault();document.getElementById('uploadBox').classList.add('drag')}
+function dragOff(e){e.preventDefault();document.getElementById('uploadBox').classList.remove('drag')}
+function dropFile(e){
+  e.preventDefault();
+  document.getElementById('uploadBox').classList.remove('drag');
+  if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+}
+
+function submitRequest(){
+  const required = ['fullName','ssn','address','cashtag'];
+  const missing = required.some(id => !document.getElementById(id).value.trim());
+
+  if(missing){
+    alert('Please complete all account information fields.');
+    return;
+  }
+  if(!uploadedFile){
+    alert('Please attach a valid ID before submitting.');
+    return;
+  }
+
+  hasRequest = true;
+  const d = new Date();
+  const dateText = d.toLocaleString('en-US',{
+    month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'
+  }).replace(',', ',');
+  document.getElementById('submitted-date').textContent = dateText;
+  document.getElementById('status-date').textContent = dateText;
+  document.getElementById('progress-submitted-date').textContent = dateText;
+  show('confirmation');
+}
+
+function resetPrototype(){
+  hasRequest = false;
+  uploadedFile = null;
+  document.getElementById('fileName').textContent = '';
+  document.getElementById('fileInput').value = '';
+  openLinking();
+}
+</script>
+</body>
+</html>
